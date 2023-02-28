@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+    <serverData>
+      <paths name="Ubuntu20ArmParallels (a8a6e7cb-8fc6-40d3-938b-841715c9e979)">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/tmp/untitled" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+    </serverData>
+  </component>
+</project>

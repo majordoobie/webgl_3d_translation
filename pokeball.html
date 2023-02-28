@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Discussion 7</title>
+
+	<script>
+		class AffineTransform2D {
+			constructor(a, b, c, d, e, f) {
+				if (arguments.length == 1 && (a instanceof AffineTransform2D)) {
+					this.a = a.a;
+					this.b = a.b;
+					this.c = a.c;
+					this.d = a.d;
+					this.e = a.e;
+					this.f = a.f;
+				} else {
+					this.a = (a === undefined) ? 1 : a;
+					this.b = (b === undefined) ? 0 : b;
+					this.c = (c === undefined) ? 0 : c;
+					this.d = (d === undefined) ? 1 : d;
+					this.e = (e === undefined) ? 0 : e;
+					this.f = (f === undefined) ? 0 : f;
+				}
+			}
+
+
+			getMat3() {
+				return [
+					this.a, this.b, 0,
+					this.c, this.d, 0,
+					this.e, this.f, 1
+				];
+			}
+
+			rotate(radians) {
+				let sin = Math.sin(radians);
+				let cos = Math.cos(radians);
+				let temp = this.a * cos + this.c * sin;
+				this.c = this.a * (-sin) + this.c * cos;
+				this.a = temp;
+				temp = this.b * cos + this.d * sin;
+				this.d = this.b * (-sin) + this.d * cos;
+				this.b = temp;
+				return this;
+			}
+
+			translate(dx, dy) {
+				this.e += this.a * dx + this.c * dy;
+				this.f += this.b * dx + this.d * dy;
+				return this;
+			}
+
+			scale(sx, sy = sx) { // Default value for sy is the value passed for sx.
+				this.a *= sx;
+				this.b *= sx;
+				this.c *= sy;
+				this.d *= sy;
+				return this;
+			}
+
+		}
+	</script>
+	<script>
+
+		"use strict";
+
+		const vertexShaderSource =
+				"attribute vec2 a_coords;\n" +
+				"uniform mat3 u_transform;\n" +
+				"void main() {\n" +
+				"   vec3 transformedCoords = u_transform * vec3(a_coords,1.0);\n" +
+				"   gl_Position = vec4(transformedCoords.xy, 0.0, 1.0);\n" +
+				"}\n";
+
+		const fragmentShaderSource =
+				"precision mediump float;\n" +
+				"uniform vec3 u_color;\n" +
+				"void main() {\n" +
+				"   gl_FragColor = vec4(u_color, 1.0);\n" +
+				"}\n";
+
+		let gl;
+
+		let a_coords_loc;
+		let u_transform_loc;
+		let u_color_loc;
+
+		let squareCoordsVBO;
+		let diskCoordsVBO;
+		let starCoordsVBO;
+
+		let animating = false;
+		let framenumber = 0;
+
+		let left = true;
+		let counter = 0;
+		let overallCounter = 0;
+
+		let transform = new AffineTransform2D();
+
+		const transformStack = [];
+
+		function pushTransform() {
+			transformStack.push(new AffineTransform2D(transform));
+		}
+
+		function popTransform() {
+			if (transformStack.length > 0) {
+				transform = transformStack.pop();
+			}
+		}
+
+		function filledSquare() {
+			gl.uniformMatrix3fv(u_transform_loc, false, transform.getMat3());
+			gl.bindBuffer(gl.ARRAY_BUFFER, squareCoordsVBO);
+			gl.vertexAttribPointer(a_coords_loc, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 4);
+		}
+
+		function filledCircle() {
+			gl.uniformMatrix3fv(u_transform_loc, false, transform.getMat3());
+			gl.bindBuffer(gl.ARRAY_BUFFER, diskCoordsVBO);
+			gl.vertexAttribPointer(a_coords_loc, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 32);
+		}
+
+		function halfFilledCircle() {
+			gl.uniformMatrix3fv(u_transform_loc, false, transform.getMat3());
+			gl.bindBuffer(gl.ARRAY_BUFFER, diskCoordsVBO);
+			gl.vertexAttribPointer(a_coords_loc, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 17);
+		}
+
+		function circle() {
+			gl.uniformMatrix3fv(u_transform_loc, false, transform.getMat3());
+			gl.bindBuffer(gl.ARRAY_BUFFER, diskCoordsVBO);
+			gl.vertexAttribPointer(a_coords_loc, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArrays(gl.LINE_LOOP, 0, 32);
+		}
+
+		function star() {
+			gl.uniformMatrix3fv(u_transform_loc, false, transform.getMat3());
+			gl.bindBuffer(gl.ARRAY_BUFFER, starCoordsVBO);
+			gl.vertexAttribPointer(a_coords_loc, 2, gl.FLOAT, false, 0, 0);
+			gl.drawArrays(gl.TRIANGLE_FAN, 0, 12);
+		}
+
+		function redPokeball() {
+			pushTransform();
+			transform.scale(0.498);
+			gl.uniform3f(u_color_loc, 1, 0, 0);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.5);
+			transform.rotate(-3.15);
+			gl.uniform3f(u_color_loc, 1, 1, 1);
+			halfFilledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.5, 0.049);
+			gl.uniform3f(u_color_loc, 0, 0, 0);
+			filledSquare();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.2);
+			gl.uniform3f(u_color_loc, 0, 0, 0);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.15);
+			gl.uniform3f(u_color_loc, 1, 1, 1);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.1);
+			gl.uniform3f(u_color_loc, 1, .8, .7961);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.1);
+			gl.uniform3f(u_color_loc, 0, 0, 0);
+			circle();
+			popTransform();
+		}
+
+		function pokeball() {
+			pushTransform();
+			transform.scale(0.498);
+			gl.uniform3f(u_color_loc, 1, 0, 0);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.5);
+			transform.rotate(-3.15);
+			gl.uniform3f(u_color_loc, 1, 1, 1);
+			halfFilledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.5, 0.049);
+			gl.uniform3f(u_color_loc, 0, 0, 0);
+			filledSquare();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.2);
+			gl.uniform3f(u_color_loc, 0, 0, 0);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.15);
+			gl.uniform3f(u_color_loc, 1, 1, 1);
+			filledCircle();
+			popTransform();
+
+			pushTransform();
+			transform.scale(0.1);
+			gl.uniform3f(u_color_loc, 0, 0, 0);
+			circle();
+			popTransform();
+		}
+
+
+		function draw() {
+
+			gl.clearColor(0.8, 0.8, 0.8, 1);
+			gl.clear(gl.COLOR_BUFFER_BIT);
+
+			pushTransform();
+
+			if (overallCounter >= 3) {
+				pushTransform();
+				gl.uniform3f(u_color_loc, 1, 1, 0);
+				transform.translate(0.3, 0.3);
+				transform.scale(.2);
+				transform.rotate(-1.25);
+				star();
+				popTransform();
+
+				pushTransform();
+				transform.translate(0, 0.45);
+				transform.scale(.2);
+				transform.rotate(-0.65);
+				star();
+				popTransform();
+
+				pushTransform();
+				transform.translate(-0.3, 0.3);
+				transform.scale(.2);
+				transform.rotate(0);
+				star();
+				popTransform();
+				pokeball();
+			} else {
+				if (counter >= 3) {
+					transform.rotate(0);
+				} else {
+					transform.rotate(framenumber / 10);
+				}
+				if (!animating) {
+					pokeball();
+				} else {
+					redPokeball();
+				}
+			}
+			popTransform();
+		}
+
+		function createProgram(gl, vertexShaderSource, fragmentShaderSource) {
+			let vsh = gl.createShader(gl.VERTEX_SHADER);
+			gl.shaderSource(vsh, vertexShaderSource);
+			gl.compileShader(vsh);
+			if (!gl.getShaderParameter(vsh, gl.COMPILE_STATUS)) {
+				throw new Error("Error in vertex shader:  " + gl.getShaderInfoLog(vsh));
+			}
+			let fsh = gl.createShader(gl.FRAGMENT_SHADER);
+			gl.shaderSource(fsh, fragmentShaderSource);
+			gl.compileShader(fsh);
+			if (!gl.getShaderParameter(fsh, gl.COMPILE_STATUS)) {
+				throw new Error("Error in fragment shader:  " + gl.getShaderInfoLog(fsh));
+			}
+			let prog = gl.createProgram();
+			gl.attachShader(prog, vsh);
+			gl.attachShader(prog, fsh);
+			gl.linkProgram(prog);
+			if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+				throw new Error("Link error in program:  " + gl.getProgramInfoLog(prog));
+			}
+			return prog;
+		}
+
+		function initGL() {
+			// Set up program
+			const prog = createProgram(gl, vertexShaderSource, fragmentShaderSource);
+			gl.useProgram(prog);
+
+			// Set up a_cords and enable its use
+			a_coords_loc = gl.getAttribLocation(prog, "a_coords");
+			gl.enableVertexAttribArray(a_coords_loc);
+
+
+			// Get universal variables this will affect everything
+			u_color_loc = gl.getUniformLocation(prog, "u_color");
+			u_transform_loc = gl.getUniformLocation(prog, "u_transform");
+
+
+			// create a square
+			squareCoordsVBO = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, squareCoordsVBO);
+			let squareCoords = new Float32Array([-0.5, -0.5, 0.5, -0.5, 0.5, 0.5, -0.5, 0.5]);
+			gl.bufferData(gl.ARRAY_BUFFER, squareCoords, gl.STATIC_DRAW);
+
+
+			// Create a disk
+			diskCoordsVBO = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, diskCoordsVBO);
+			let circleCoords = new Float32Array(64);
+			for (let i = 0; i < 32; i++) {
+				let angle = (2 * Math.PI) / 32 * i;
+				circleCoords[2 * i] = 0.5 * Math.cos(angle);
+				circleCoords[2 * i + 1] = 0.5 * Math.sin(angle);
+			}
+
+
+			// Create a circle
+			gl.bufferData(gl.ARRAY_BUFFER, circleCoords, gl.STATIC_DRAW);
+			starCoordsVBO = gl.createBuffer();
+			gl.bindBuffer(gl.ARRAY_BUFFER, starCoordsVBO);
+			let starCoords = new Float32Array(24);
+			starCoords[0] = 0;
+			starCoords[1] = 0;
+			for (let i = 1; i <= 11; i++) {
+				let angle = -Math.PI / 2 + i / 10 * 2 * Math.PI;
+				let radius = (i % 2 === 0) ? 50 : 21;
+				starCoords[2 * i] = 0.01 * radius * Math.cos(angle);
+				starCoords[2 * i + 1] = 0.01 * radius * Math.sin(angle);
+			}
+			gl.bufferData(gl.ARRAY_BUFFER, starCoords, gl.STATIC_DRAW);
+
+
+			gl.lineWidth(2);
+		}
+
+		async function doFrame() {
+			if (animating) {
+				if (framenumber / 10 >= 0.45) {
+					left = false;
+					counter++;
+				} else if (framenumber / 10 <= -0.45) {
+					left = true;
+					counter++;
+				}
+				if (left) {
+					framenumber++;
+				} else {
+					framenumber--;
+				}
+				draw();
+				if (counter >= 3) {
+					await new Promise(r => setTimeout(r, 1000));
+					counter = 0;
+					overallCounter++;
+				}
+				requestAnimationFrame(doFrame);
+			}
+		}
+
+		function startAnimation() {
+			if (!animating) {
+				animating = true;
+				requestAnimationFrame(doFrame);
+			}
+		}
+
+		function pauseAnimation() {
+			animating = false;
+		}
+
+		function doAnimationCheckbox() {
+			if (document.getElementById("animationCheckbox").checked)
+				startAnimation();
+			else
+				pauseAnimation();
+		}
+
+
+		function init() {
+			try {
+				let canvas = document.getElementById("webglcanvas");
+				let options = {
+					depth: false
+				};
+				gl = canvas.getContext("webgl", options);
+				if (!gl) {
+					throw "Browser does not support WebGL";
+				}
+			} catch (e) {
+				document.getElementById("canvas-holder").innerHTML =
+						"<p>Sorry, could not get a WebGL graphics context.</p>";
+				return;
+			}
+			try {
+				initGL();
+			} catch (e) {
+				document.getElementById("canvas-holder").innerHTML =
+						"<p>Sorry, could not initialize the WebGL graphics context:" + e + "</p>";
+				return;
+			}
+			document.getElementById("animationCheckbox").checked = false;
+			document.getElementById("animationCheckbox").onchange = doAnimationCheckbox;
+			draw();
+		}
+
+		window.onload = init;
+
+	</script>
+</head>
+<body>
+
+<h2>Discussion 7</h2>
+
+<noscript><p><b>Sorry, but this page requires JavaScript.</b></p></noscript>
+
+<h2><label><input type="checkbox" id="animationCheckbox"><b>Animate</b></label></h2>
+
+<div id="canvas-holder">
+	<canvas id="webglcanvas" width="600" height="600"></canvas>
+</div>
+
+</body>
+</html>
