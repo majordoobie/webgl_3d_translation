@@ -53,16 +53,26 @@
 </head>
 
 <body>
-<canvas id="canvas"></canvas>
-<div id="uiContainer">
-	<div id="ui">
-		<div id="x"></div>
-		<div id="y"></div>
-		<div id="angle"></div>
-		<div id="scaleX"></div>
-		<div id="scaleY"></div>
-	</div>
-</div>
+<canvas id="canvas" width="800" height="800"></canvas>
+<p>
+<p><label><b>Select Shape: </b><select id="shapeDiv">
+	<option value="0">Sphere</option>
+	<option value="1">Cube</option>
+	<option value="2">Cone</option>
+	<option value="3">Cylinder</option>
+	<option value="4">Dodecahedron</option>
+	<option value="5">Torus Knot</option>
+</select></label>
+</p>
+
+<p>
+<p><label><b>Select Speed: </b><select id="speedDiv">
+	<option value="0">Slow</option>
+	<option value="1">Medium</option>
+	<option value="2">Fast</option>
+	<option value="3">Wild</option>
+</select></label>
+</p>
 
 <script src="f_string.js" type="module"></script>
 </body>

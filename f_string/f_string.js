@@ -3,11 +3,20 @@
 
 import {createShader} from "./webgl_comp_linker.js";
 
+
+let translation = [100, 150];
+let angleInRadians = 0;
+let scale = [1, 1];
+let color = [Math.random(), Math.random(), Math.random(), 1];
+let gl;
+let matrixLocation;
+
+
 function main_func() {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
     let canvas = document.querySelector("#canvas");
-    let gl = canvas.getContext("webgl");
+    gl = canvas.getContext("webgl");
     if (!gl) {
         return;
     }
@@ -21,7 +30,7 @@ function main_func() {
     // lookup uniforms
     let resolutionLocation = gl.getUniformLocation(program, "u_resolution");
     let colorLocation = gl.getUniformLocation(program, "u_color");
-    let matrixLocation = gl.getUniformLocation(program, "u_matrix");
+    matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
     // Create a buffer to put positions in
     let positionBuffer = gl.createBuffer();
@@ -29,11 +38,6 @@ function main_func() {
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     // Put geometry data into buffer
     setGeometry(gl);
-
-    let translation = [100, 150];
-    let angleInRadians = 0;
-    let scale = [1, 1];
-    let color = [Math.random(), Math.random(), Math.random(), 1];
 
     drawScene();
 
@@ -111,6 +115,8 @@ function main_func() {
         let count = 18;  // 6 triangles in the 'F', 3 points per triangle
         gl.drawArrays(primitiveType, offset, count);
 
+        angleInRadians -= .02;
+        requestAnimationFrame(drawScene);
     }
 }
 
@@ -213,4 +219,5 @@ function setGeometry(gl) {
         ]),
         gl.STATIC_DRAW);
 }
+
 main_func();
