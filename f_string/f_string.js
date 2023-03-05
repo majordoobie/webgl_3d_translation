@@ -1,9 +1,9 @@
 // WebGL - 2D Geometry Matrix Transform - Centered F Rotation
 "use strict";
 
-import { createShader } from './webgl_comp_linker';
+import {createShader} from "./webgl_comp_linker.js";
 
-function main() {
+function main_func() {
     // Get A WebGL context
     /** @type {HTMLCanvasElement} */
     let canvas = document.querySelector("#canvas");
@@ -37,27 +37,6 @@ function main() {
 
     drawScene();
 
-    // Setup a ui.
-    webglLessonsUI.setupSlider("#x", {value: translation[0], slide: updatePosition(0), max: gl.canvas.width});
-    webglLessonsUI.setupSlider("#y", {value: translation[1], slide: updatePosition(1), max: gl.canvas.height});
-    webglLessonsUI.setupSlider("#angle", {slide: updateAngle, max: 360});
-    webglLessonsUI.setupSlider("#scaleX", {
-        value: scale[0],
-        slide: updateScale(0),
-        min: -5,
-        max: 5,
-        step: 0.01,
-        precision: 2
-    });
-    webglLessonsUI.setupSlider("#scaleY", {
-        value: scale[1],
-        slide: updateScale(1),
-        min: -5,
-        max: 5,
-        step: 0.01,
-        precision: 2
-    });
-
     function updatePosition(index) {
         return function (event, ui) {
             translation[index] = ui.value;
@@ -80,8 +59,6 @@ function main() {
 
     // Draw the scene.
     function drawScene() {
-        webglUtils.resizeCanvasToDisplaySize(gl.canvas);
-
         // Tell WebGL how to convert from clip space to pixels
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
@@ -236,5 +213,4 @@ function setGeometry(gl) {
         ]),
         gl.STATIC_DRAW);
 }
-
-main();
+main_func();
