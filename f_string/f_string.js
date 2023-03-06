@@ -17,6 +17,8 @@ let matrixLocation;
 let timeLapse = 0;
 let rotationVelocity = 1.2;
 
+let drawnObject;
+
 
 function main_func() {
     // Get A WebGL context
@@ -32,29 +34,11 @@ function main_func() {
 
     // look up where the vertex data needs to go.
     let positionLocation = gl.getAttribLocation(program, "a_position");
-
     let colorLocation = gl.getAttribLocation(program, "a_color");
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-
-    // Create a buffer for colors.
-    let colorBuffer = gl.createBuffer();
-
-    // Create a buffer to put positions in
-    let positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-    // Put geometry data into buffer
-    // shapes.setFSampleCoords(gl);
-    shapes.setCubeCoords(gl);
-
-    // Create a buffer to put colors in
-    colorBuffer = gl.createBuffer();
-    // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = colorBuffer)
-    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-    // Put geometry data into buffer
-    
-    shapes.setFSampleColor(gl);
+    drawnObject = shapes.populateCube(gl);
+    drawnObject = shapes.populateF(gl);
 
     requestAnimationFrame(drawScene);
 
@@ -82,7 +66,7 @@ function main_func() {
         gl.enableVertexAttribArray(positionLocation);
 
         // Bind the position buffer.
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, drawnObject.positionBuffer);
 
         // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
         let size = 3;          // 3 components per iteration
@@ -97,7 +81,7 @@ function main_func() {
         gl.enableVertexAttribArray(colorLocation);
 
         // Bind the color buffer.
-        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        gl.bindBuffer(gl.ARRAY_BUFFER, drawnObject.colorBuffer);
 
         // Tell the attribute how to get data out of colorBuffer (ARRAY_BUFFER)
         size = 3;                 // 3 components per iteration
@@ -122,11 +106,7 @@ function main_func() {
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
         // Draw the geometry.
-        let primitiveType = gl.TRIANGLES;
-        offset = 0;
-        // let count = 16 * 6;
-        let count = 6 * 6;
-        gl.drawArrays(primitiveType, offset, count);
+        gl.drawArrays(gl.TRIANGLES, 0, drawnObject.sides);
 
 
         rotation[0] += deltaTime * rotationVelocity;

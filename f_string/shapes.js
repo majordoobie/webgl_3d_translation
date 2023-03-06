@@ -1,4 +1,46 @@
-export function setCubeCoords(gl) {
+export function populateCube(gl) {
+        let sides = 6;
+        let vertexPerSize = 6;
+        
+        let positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        setCubeCoords(gl);
+        
+        let colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        setFSampleColor(gl);
+        
+        return {
+                sides: sides * vertexPerSize,
+                positionBuffer: positionBuffer,
+                colorBuffer: colorBuffer
+        }
+}
+
+export function populateF(gl) {
+        let sides = 16;
+        let vertexPerSize = 6;
+
+        let positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        setFSampleCoords(gl);
+
+        let colorBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+        setFSampleColor(gl);
+
+        return {
+                sides: sides * vertexPerSize,
+                positionBuffer: positionBuffer,
+                colorBuffer: colorBuffer
+        }
+        
+}
+
+
+function setCubeCoords(gl) {
+    let sides = 6;
+    let vertexPerSize = 6;
     gl.bufferData(gl.ARRAY_BUFFER,
         new Float32Array([
             0, 0, 0,
@@ -45,9 +87,11 @@ export function setCubeCoords(gl) {
 
 
         ]), gl.STATIC_DRAW);
+    return sides * vertexPerSize;
+    
 }
 
-export function setFSampleCoords(gl) {
+function setFSampleCoords(gl) {
     gl.bufferData(
         gl.ARRAY_BUFFER,
         new Float32Array([
@@ -179,9 +223,10 @@ export function setFSampleCoords(gl) {
             0, 150, 30,
             0, 150, 0]),
         gl.STATIC_DRAW);
+    return 16 * 6;
 }
 
-export function setFSampleColor(gl) {
+function setFSampleColor(gl) {
     gl.bufferData(
         gl.ARRAY_BUFFER,
         new Uint8Array([
