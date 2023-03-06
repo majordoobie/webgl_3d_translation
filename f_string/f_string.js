@@ -15,9 +15,24 @@ let gl;
 let matrixLocation;
 
 let timeLapse = 0;
-let rotationVelocity = 1.2;
+let rotationVelocity = 0;
 
 let drawnObject;
+let shapeQueue = [
+    shapes.populateCube,
+    shapes.populateF,
+    shapes.setSphereCoords
+];
+
+let speedQueue = [0, 1.2, 3, 100];
+
+function onShapeSelect() {
+    drawnObject = shapeQueue[Number(document.getElementById("shapeDiv").value)](gl);
+}
+
+function onSpeedSelect() {
+    rotationVelocity = speedQueue[Number(document.getElementById("speedDiv").value)];
+}
 
 
 function main_func() {
@@ -37,18 +52,26 @@ function main_func() {
     let colorLocation = gl.getAttribLocation(program, "a_color");
     matrixLocation = gl.getUniformLocation(program, "u_matrix");
 
-    drawnObject = shapes.populateCube(gl);
-    drawnObject = shapes.populateF(gl);
+    // Set the default values for the page
+    document.getElementById("shapeDiv").value = "0";
+    document.getElementById("shapeDiv").onchange = onShapeSelect;
+
+    document.getElementById("speedDiv").value = "0";
+    document.getElementById("speedDiv").onchange = onSpeedSelect;
+    
+    onShapeSelect();
+    onSpeedSelect();
 
     requestAnimationFrame(drawScene);
 
     // Draw the scene.
     function drawScene(timeSinceLoad) {
+
         // Convert frametime to seconds
         timeSinceLoad *= 0.001
         let deltaTime = timeSinceLoad - timeLapse;
         timeLapse = timeSinceLoad;
-        
+
         // Enable CULL and Depth test
         gl.enable(gl.CULL_FACE);
         gl.enable(gl.DEPTH_TEST);
@@ -106,8 +129,7 @@ function main_func() {
         gl.uniformMatrix4fv(matrixLocation, false, matrix);
 
         // Draw the geometry.
-        gl.drawArrays(gl.TRIANGLES, 0, drawnObject.sides);
-
+        drawnObject.drawObj();
 
         rotation[0] += deltaTime * rotationVelocity;
         rotation[1] += deltaTime * rotationVelocity;
